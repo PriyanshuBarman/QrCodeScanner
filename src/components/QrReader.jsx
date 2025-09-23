@@ -119,7 +119,6 @@ const QrReader = ({ onClose }) => {
         <video
           ref={videoEl}
           className="h-full w-full object-cover"
-          playsInline
           muted
         />
       </div>
