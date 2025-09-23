@@ -8,7 +8,7 @@ function App() {
   const [openQr, setOpenQr] = useState(false);
   return (
     <div>
-      <button onClick={() => setOpenQr(!openQr)}>
+      <button onClick={() => setOpenQr(!openQr)} className="text-green-700">
         {openQr ? "Close" : "Open"} QR Scanner
       </button>
       {openQr && <QrReader />}
