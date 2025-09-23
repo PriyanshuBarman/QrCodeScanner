@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { FlashlightIcon, ImageUpIcon, XIcon } from "lucide-react";
 import QrScanner from "qr-scanner";
 import { useEffect, useRef, useState } from "react";
-import QrFrame from "./QrFrame";
 
 const QrReader = ({ onClose }) => {
   // QR States (using the working logic from Medium article)
@@ -110,21 +109,21 @@ const QrReader = ({ onClose }) => {
 
   // Camera permission alert (from Medium article)
   useEffect(() => {
-    if (!qrOn) onClose("");
-    alert(
-      "Camera is blocked or not accessible. Please allow camera in your browser permissions and Reload."
-    );
+    if (!qrOn)
+      alert(
+        "Camera is blocked or not accessible. Please allow camera in your browser permissions and Reload."
+      );
   }, [qrOn]);
 
   return (
     <div className="fixed inset-0 w-full overflow-hidden bg-black">
       {/* Top Bar */}
-      <div className="Top-Bar absolute top-0 right-0 left-0 z-10 flex items-center justify-between p-4">
+      <div className="Top-Bar absolute top-0 right-0 left-0 z-50 flex items-center justify-between p-4 text-white">
         <Button
           onClick={handleClose}
           size="icon"
           variant="ghost"
-          className="rounded-full p-5  text-white "
+          className="rounded-full p-5 bg-black/50 backdrop-blur-sm "
         >
           <XIcon className="size-6" />
         </Button>
@@ -134,30 +133,56 @@ const QrReader = ({ onClose }) => {
           size="icon"
           variant="ghost"
           onClick={toggleFlashlight}
-          className={` rounded-full  p-5 ${
-            isFlashOn ? "bg-white text-black" : "text-white"
+          className={` rounded-full p-5 bg-black/50 backdrop-blur-sm ${
+            isFlashOn ? "text-yellow-400" : "text-white"
           }`}
         >
-          <FlashlightIcon className="size-5" />
+          <FlashlightIcon className="size-6" />
         </Button>
       </div>
 
       {/* Video Stream - Full Screen Background */}
-      <video ref={videoEl} className=" h-full w-full object-cover" />
+      <video ref={videoEl} className=" h-full w-full object-cover" muted />
 
-      <div ref={qrBoxEl} className="-translate-y-16">
+      <div ref={qrBoxEl} className="-translate-y-18">
         <div className="absolute inset-0 pointer-events-none flex gap-12 flex-col justify-center items-center">
-          <QrFrame />
-          <p className="text-white text-base z-10 ">Scan QR Code </p>
+          {/*  custom rounded square border frame */}
+          <div className="relative  sm:min-h-72 sm:min-w-72 min-w-64 min-h-64">
+            {/* Main rounded square border - invisible, just for positioning */}
+            <div className="h-full w-full" />
+
+            {/* Rounded corner borders */}
+            {/* Top left corner */}
+            <div className="absolute top-0 left-0">
+              <div className="h-8 w-8 rounded-tl-3xl border-t-4 border-l-4 border-white" />
+            </div>
+
+            {/* Top right corner */}
+            <div className="absolute top-0 right-0">
+              <div className="h-8 w-8 rounded-tr-3xl border-t-4 border-r-4 border-white" />
+            </div>
+
+            {/* Bottom left corner */}
+            <div className="absolute bottom-0 left-0">
+              <div className="h-8 w-8 rounded-bl-3xl border-b-4 border-l-4 border-white" />
+            </div>
+
+            {/* Bottom right corner */}
+            <div className="absolute right-0 bottom-0">
+              <div className="h-8 w-8 rounded-br-3xl border-r-4 border-b-4 border-white" />
+            </div>
+          </div>
+
+          <p className="text-white font-[450] ">Scan Vestify QR Code </p>
         </div>
       </div>
 
       {/* Scan from photo button */}
       <div className="absolute bottom-12 left-1/2 z-50 -translate-x-1/2 transform">
         <Button
-          variant="secondary"
+          variant="ghost"
           onClick={handleScanFromPhoto}
-          className=" leading-0 rounded-3xl py-5 !px-6 font-normal text-black shadow"
+          className=" leading-0 rounded-3xl bg-black/70 py-5 !px-6 font-normal text-white shadow backdrop-blur-sm "
         >
           <ImageUpIcon />
           Upload Photo
