@@ -1,32 +1,33 @@
 import { useEffect, useRef, useState } from "react";
-import { X, ImageIcon, Zap } from "lucide-react";
+import { X, ImageIcon, Zap, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import QrScanner from "qr-scanner";
 
 const QrReader = ({ onClose }) => {
-  const scanner = useRef(null);
+  // QR States (using the working logic from Medium article)
+  const scanner = useRef();
   const videoEl = useRef(null);
-  const videoContainerEl = useRef(null);
+  const qrBoxEl = useRef(null);
   const [qrOn, setQrOn] = useState(true);
+  // const [scannedResult, setScannedResult] = useState("");
+  // const [flashlightOn, setFlashlightOn] = useState(false);
 
-  // Success callback
+  // Success callback (from Medium article)
   const onScanSuccess = (result) => {
-    console.log("QR Code detected:", result.data);
-    onClose(result.data);
-    if (scanner.current) {
-      scanner.current.stop();
-      scanner.current = null;
-    }
+    console.log("QR Code detected:", result);
+    // setScannedResult(result?.data);
+    onClose(result?.data);
+    setQrOn(false);
   };
 
-  // Error callback
+  // Error callback (from Medium article)
   const onScanFail = (err) => {
     console.log("QR scan error:", err);
   };
 
   // Handle close button
   const handleClose = () => {
-    if (scanner.current) {
+    if (scanner?.current) {
       scanner.current.stop();
       scanner.current = null;
     }
@@ -41,7 +42,7 @@ const QrReader = ({ onClose }) => {
       try {
         await scanner.current.toggleFlash();
       } catch (error) {
-        alert("Flashlight is not available on this device.");
+        alert(error);
       }
     }
   };
@@ -58,53 +59,55 @@ const QrReader = ({ onClose }) => {
         if (file) {
           try {
             const result = await QrScanner.scanImage(file);
+            // setScannedResult(result);
             console.log("QR Code from image:", result);
-            onClose(result);
           } catch (err) {
             console.error("No QR code found in image:", err);
-            alert("No QR code found in the selected image.");
+            alert("No QR code found in the selected image");
           }
         }
       };
+
       input.click();
     } catch (err) {
       console.error("Error scanning from photo:", err);
     }
   };
 
-  // Initialize QR Scanner
+  // Initialize QR Scanner (using exact logic from Medium article)
   useEffect(() => {
     if (videoEl?.current && !scanner.current) {
-      // Add the class for the custom style
-      if (videoContainerEl.current) {
-        videoContainerEl.current.className = "example-style-2";
-      }
-
-      scanner.current = new QrScanner(videoEl.current, onScanSuccess, {
+      // Instantiate the QR Scanner (from Medium article)
+      scanner.current = new QrScanner(videoEl?.current, onScanSuccess, {
         onDecodeError: onScanFail,
+        // Camera facing mode - "environment" means back camera
         preferredCamera: "environment",
+        // Help position our scan region
         highlightScanRegion: true,
+        // Show yellow outline around detected QR code
         highlightCodeOutline: true,
+        // Custom div for scan region control
+        overlay: qrBoxEl?.current || undefined,
       });
 
-      scanner.current
+      // Start QR Scanner
+      scanner?.current
         ?.start()
         .then(() => setQrOn(true))
         .catch((err) => {
-          console.error("Failed to start scanner:", err);
-          setQrOn(false);
+          if (err) setQrOn(false);
         });
     }
 
     // Clean up on unmount
     return () => {
-      if (scanner.current) {
-        scanner.current.stop();
-        scanner.current = null;
+      if (!videoEl?.current) {
+        scanner?.current?.stop();
       }
     };
   }, []);
 
+  // Camera permission alert (from Medium article)
   useEffect(() => {
     if (!qrOn)
       alert(
@@ -113,16 +116,7 @@ const QrReader = ({ onClose }) => {
   }, [qrOn]);
 
   return (
-    <div className="fixed inset-0 w-full overflow-hidden bg-black flex flex-col justify-center items-center">
-      {/* Video Stream Container - This will get the new class for styling */}
-      <div
-        ref={videoContainerEl}
-        id="video-container"
-        className="example-style-2"
-      >
-        <video ref={videoEl} className="fixed inset-0 object-cover" muted />
-      </div>
-
+    <div className="fixed inset-0 w-full overflow-hidden bg-black">
       {/* Top bar with close button and controls */}
       <div className="absolute top-0 right-0 left-0 z-50 flex items-center justify-between p-4 text-white">
         <button
@@ -131,14 +125,39 @@ const QrReader = ({ onClose }) => {
         >
           <X size={24} strokeWidth={2} />
         </button>
+
+        {/* Top right controls */}
         <div className="flex gap-4">
+          {/* Flashlight button */}
           <button
             onClick={toggleFlashlight}
-            className={`flex h-10 w-10 items-center justify-center transition-colors text-white hover:text-yellow-400`}
+            className={`flex h-10 w-10 items-center justify-center transition-colors ${
+              scanner?.current?.isFlashOn() ? "text-yellow-400" : "text-white"
+            }`}
           >
             <Zap size={24} />
           </button>
+
+          {/* Settings button */}
+          <button className="flex h-10 w-10 items-center justify-center">
+            <Settings size={24} />
+          </button>
         </div>
+      </div>
+
+      {/* Video Stream - Full Screen Background */}
+      <video ref={videoEl} className=" h-full w-full object-cover" muted />
+
+      <div
+        ref={qrBoxEl}
+        >
+        <img
+          src="./qr-frame.svg"
+          alt="Qr Frame"
+          width={256}
+          height={256}
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+        />
       </div>
 
       {/* Scan from photo button */}
@@ -157,6 +176,7 @@ const QrReader = ({ onClose }) => {
       {!qrOn && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md">
           <div className="text-center">
+            <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-3 border-white border-t-transparent" />
             <p className="text-lg text-white">
               Camera not accessible. Please allow camera permissions and reload.
             </p>

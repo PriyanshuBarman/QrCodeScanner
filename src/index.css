@@ -118,15 +118,11 @@
     @apply bg-background text-foreground;
   }
 }
-
+/* 
 #video-container {
   position: fixed;
-  top: 40%;
-  
-  /* Position the bottom, left, and right edges at 0 to fill the rest of the screen */
-  bottom: 0;
-  left: 0;
-  right: 0;
+  top: 50%;
+  left: 50%;
   transform: translate(-50%, -50%);
 
   aspect-ratio: 9 / 16;
@@ -149,7 +145,7 @@
 
 /* The rest of the styling for .example-style-2 remains the same */
 
-.example-style-2 .scan-region-highlight {
+/* .example-style-2 .scan-region-highlight {
   border-radius: 30px;
   outline: rgba(0, 0, 0, 0.25) solid 50vmax;
 }
@@ -162,4 +158,4 @@
   stroke: rgba(255, 255, 255, 0.5) !important;
   stroke-width: 15 !important;
   stroke-dasharray: none !important;
-}
+} */
