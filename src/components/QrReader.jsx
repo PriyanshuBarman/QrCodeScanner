@@ -115,12 +115,12 @@ const QrReader = ({ onClose }) => {
   return (
     <div className="fixed inset-0 w-full overflow-hidden bg-black flex flex-col justify-center items-center">
       {/* Video Stream Container - This will get the new class for styling */}
-      <div ref={videoContainerEl} id="video-container"  className="example-style-2">
-        <video
-          ref={videoEl}
-          className="h-full w-full object-cover"
-          muted
-        />
+      <div
+        ref={videoContainerEl}
+        id="video-container"
+        className="example-style-2"
+      >
+        <video ref={videoEl} className="fixed inset-0 object-cover" muted />
       </div>
 
       {/* Top bar with close button and controls */}
