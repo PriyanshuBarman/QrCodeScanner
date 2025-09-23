@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
-import { X, ImageIcon, Zap, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { FlashlightIcon, ImageUpIcon, XIcon } from "lucide-react";
 import QrScanner from "qr-scanner";
+import { useEffect, useRef, useState } from "react";
 
 const QrReader = ({ onClose }) => {
   // QR States (using the working logic from Medium article)
@@ -9,8 +9,7 @@ const QrReader = ({ onClose }) => {
   const videoEl = useRef(null);
   const qrBoxEl = useRef(null);
   const [qrOn, setQrOn] = useState(true);
-  // const [scannedResult, setScannedResult] = useState("");
-  // const [flashlightOn, setFlashlightOn] = useState(false);
+  const [isFlashOn, setIsFlashOn] = useState(false);
 
   // Success callback (from Medium article)
   const onScanSuccess = (result) => {
@@ -41,6 +40,7 @@ const QrReader = ({ onClose }) => {
     if (scanner.current) {
       try {
         await scanner.current.toggleFlash();
+        setIsFlashOn(scanner.current.isFlashOn());
       } catch (error) {
         alert(error);
       }
@@ -117,47 +117,64 @@ const QrReader = ({ onClose }) => {
 
   return (
     <div className="fixed inset-0 w-full overflow-hidden bg-black">
-      {/* Top bar with close button and controls */}
-      <div className="absolute top-0 right-0 left-0 z-50 flex items-center justify-between p-4 text-white">
-        <button
+      {/* Top Bar */}
+      <div className="Top-Bar absolute top-0 right-0 left-0 z-50 flex items-center justify-between p-4 text-white">
+        <Button
           onClick={handleClose}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-black/50 backdrop-blur-sm transition-all hover:bg-black/70"
+          size="icon"
+          variant="ghost"
+          className="rounded-full p-5 bg-black/50 backdrop-blur-sm "
         >
-          <X size={24} strokeWidth={2} />
-        </button>
+          <XIcon className="size-6" />
+        </Button>
 
-        {/* Top right controls */}
-        <div className="flex gap-4">
-          {/* Flashlight button */}
-          <button
-            onClick={toggleFlashlight}
-            className={`flex h-10 w-10 items-center justify-center transition-colors ${
-              scanner?.current?.isFlashOn() ? "text-yellow-400" : "text-white"
-            }`}
-          >
-            <Zap size={24} />
-          </button>
-
-          {/* Settings button */}
-          <button className="flex h-10 w-10 items-center justify-center">
-            <Settings size={24} />
-          </button>
-        </div>
+        {/* Flashlight button */}
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={toggleFlashlight}
+          className={` rounded-full p-5 bg-black/50 backdrop-blur-sm ${
+            isFlashOn ? "text-yellow-400" : "text-white"
+          }`}
+        >
+          <FlashlightIcon className="size-6" />
+        </Button>
       </div>
 
       {/* Video Stream - Full Screen Background */}
       <video ref={videoEl} className=" h-full w-full object-cover" muted />
 
-      <div
-        ref={qrBoxEl}
-        >
-        <img
-          src="./qr-frame.svg"
-          alt="Qr Frame"
-          width={256}
-          height={256}
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
-        />
+      <div ref={qrBoxEl} className="-translate-y-18">
+        <div className="absolute inset-0 pointer-events-none flex gap-12 flex-col justify-center items-center">
+          {/*  custom rounded square border frame */}
+          <div className="relative  sm:min-h-72 sm:min-w-72 min-w-64 min-h-64">
+            {/* Main rounded square border - invisible, just for positioning */}
+            <div className="h-full w-full" />
+
+            {/* Rounded corner borders */}
+            {/* Top left corner */}
+            <div className="absolute top-0 left-0">
+              <div className="h-8 w-8 rounded-tl-3xl border-t-4 border-l-4 border-white" />
+            </div>
+
+            {/* Top right corner */}
+            <div className="absolute top-0 right-0">
+              <div className="h-8 w-8 rounded-tr-3xl border-t-4 border-r-4 border-white" />
+            </div>
+
+            {/* Bottom left corner */}
+            <div className="absolute bottom-0 left-0">
+              <div className="h-8 w-8 rounded-bl-3xl border-b-4 border-l-4 border-white" />
+            </div>
+
+            {/* Bottom right corner */}
+            <div className="absolute right-0 bottom-0">
+              <div className="h-8 w-8 rounded-br-3xl border-r-4 border-b-4 border-white" />
+            </div>
+          </div>
+
+          <p className="text-white font-[450] ">Scan Vestify QR Code </p>
+        </div>
       </div>
 
       {/* Scan from photo button */}
@@ -165,24 +182,12 @@ const QrReader = ({ onClose }) => {
         <Button
           variant="ghost"
           onClick={handleScanFromPhoto}
-          className="flex items-center gap-2 rounded-2xl bg-black/70 !px-6 font-normal text-white shadow backdrop-blur-sm hover:bg-black/80"
+          className=" leading-0 rounded-3xl bg-black/70 py-5 !px-6 font-normal text-white shadow backdrop-blur-sm "
         >
-          <ImageIcon size={20} />
-          Scan from photo
+          <ImageUpIcon />
+          Upload Photo
         </Button>
       </div>
-
-      {/* Loading state */}
-      {!qrOn && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md">
-          <div className="text-center">
-            <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-3 border-white border-t-transparent" />
-            <p className="text-lg text-white">
-              Camera not accessible. Please allow camera permissions and reload.
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
