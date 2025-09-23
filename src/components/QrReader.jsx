@@ -3,19 +3,21 @@ import { X, ImageIcon, Zap, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import QrScanner from "qr-scanner";
 
-const QrReader = () => {
+const QrReader = ({ onClose }) => {
   // QR States (using the working logic from Medium article)
   const scanner = useRef();
   const videoEl = useRef(null);
   const qrBoxEl = useRef(null);
   const [qrOn, setQrOn] = useState(true);
-  const [scannedResult, setScannedResult] = useState("");
+  // const [scannedResult, setScannedResult] = useState("");
   const [flashlightOn, setFlashlightOn] = useState(false);
 
   // Success callback (from Medium article)
   const onScanSuccess = (result) => {
     console.log("QR Code detected:", result);
-    setScannedResult(result?.data);
+    // setScannedResult(result?.data);
+    onClose(result?.data);
+    setQrOn(false);
   };
 
   // Error callback (from Medium article)
@@ -29,6 +31,8 @@ const QrReader = () => {
       scanner.current.stop();
       scanner.current = null;
     }
+    setQrOn(false);
+    onClose("");
     console.log("Scanner closed - camera should be off");
   };
 
@@ -52,16 +56,16 @@ const QrReader = () => {
   // Handle scan from photo
   const handleScanFromPhoto = async () => {
     try {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'image/*';
-      
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+
       input.onchange = async (event) => {
         const file = event.target.files[0];
         if (file) {
           try {
             const result = await QrScanner.scanImage(file);
-            setScannedResult(result);
+            // setScannedResult(result);
             console.log("QR Code from image:", result);
           } catch (err) {
             console.error("No QR code found in image:", err);
@@ -69,7 +73,7 @@ const QrReader = () => {
           }
         }
       };
-      
+
       input.click();
     } catch (err) {
       console.error("Error scanning from photo:", err);
@@ -157,7 +161,7 @@ const QrReader = () => {
             </div>
           </div>
 
-          <h2 className="mt-8 text-center text-sm font-medium text-white drop-shadow-lg">
+          <h2 className="mt-8 text-center text-sm font-medium text-white ">
             Scan QR code
           </h2>
         </div>
@@ -175,9 +179,11 @@ const QrReader = () => {
         {/* Top right controls */}
         <div className="flex gap-4">
           {/* Flashlight button */}
-          <button 
+          <button
             onClick={toggleFlashlight}
-            className={`flex h-10 w-10 items-center justify-center transition-colors ${flashlightOn ? 'text-yellow-400' : 'text-white'}`}
+            className={`flex h-10 w-10 items-center justify-center transition-colors ${
+              flashlightOn ? "text-yellow-400" : "text-white"
+            }`}
           >
             <Zap size={24} />
           </button>
@@ -201,50 +207,14 @@ const QrReader = () => {
         </Button>
       </div>
 
-      {/* Scanned result display */}
-      {scannedResult && (
-        <div className="absolute top-20 right-4 left-4 z-50">
-          <div className="rounded-lg bg-green-600/90 p-4 shadow-lg backdrop-blur-sm text-white">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-semibold">QR Code Detected:</h3>
-              <button
-                onClick={() => setScannedResult("")}
-                className="text-white/80 hover:text-white"
-              >
-                <X size={16} />
-              </button>
-            </div>
-            <p className="text-sm break-all bg-black/20 p-2 rounded font-mono">
-              {scannedResult}
-            </p>
-            <div className="mt-2 flex gap-2">
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => navigator.clipboard.writeText(scannedResult)}
-                className="text-xs"
-              >
-                Copy
-              </Button>
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => setScannedResult("")}
-                className="text-xs"
-              >
-                Dismiss
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Loading state */}
       {!qrOn && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md">
           <div className="text-center">
             <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-3 border-white border-t-transparent" />
-            <p className="text-lg text-white">Camera not accessible. Please allow camera permissions and reload.</p>
+            <p className="text-lg text-white">
+              Camera not accessible. Please allow camera permissions and reload.
+            </p>
           </div>
         </div>
       )}
