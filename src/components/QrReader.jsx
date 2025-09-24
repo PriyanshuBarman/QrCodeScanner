@@ -1,99 +1,91 @@
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FlashlightIcon, ImageUpIcon, XIcon } from "lucide-react";
 import QrScanner from "qr-scanner";
-import { useEffect, useRef, useState } from "react";
 
-function QrCodeScanner({ onClose }) {
-  const scanner = useRef();
+function QrReader({ onClose }) {
+  // 🔹 Refs & State
+  const scanner = useRef(null);
   const videoEl = useRef(null);
   const qrBoxEl = useRef(null);
-  const [qrOn, setQrOn] = useState(true);
+  const [isActive, setIsActive] = useState(false);
   const [isFlashOn, setIsFlashOn] = useState(false);
 
+  // 🔹 Handlers
   const handleClose = () => {
-    if (scanner?.current) {
-      scanner.current.stop();
-      scanner.current = null;
-    }
-    setQrOn(false);
+    scanner.current?.stop();
+    scanner.current = null;
+    setIsActive(false);
     onClose("");
   };
 
-  const toggleFlashlight = async () => {
-    if (scanner.current) {
-      try {
-        await scanner.current.toggleFlash();
-        setIsFlashOn(scanner.current.isFlashOn());
-      } catch (error) {
-        alert(error);
-      }
-    }
-  };
-
-  const onScanSuccess = (result) => {
+  const handleScanSuccess = (result) => {
     console.log("QR Code detected:", result);
     onClose(result?.data);
-    setQrOn(false);
+    setIsActive(false);
   };
 
-  const onScanFail = (err) => {
+  const handleScanError = (err) => {
     console.log("QR scan error:", err);
   };
 
+  const handleToggleFlashlight = async () => {
+    if (!scanner.current) return;
+    try {
+      await scanner.current.toggleFlash();
+      setIsFlashOn(scanner.current.isFlashOn());
+    } catch (error) {
+      console.error("Flashlight not supported:", error);
+    }
+  };
+
+  // 🔹 Scanner Lifecycle
   useEffect(() => {
-    if (videoEl?.current && !scanner.current) {
-      scanner.current = new QrScanner(videoEl?.current, onScanSuccess, {
-        onDecodeError: onScanFail,
+    if (videoEl.current && !scanner.current) {
+      scanner.current = new QrScanner(videoEl.current, handleScanSuccess, {
+        onDecodeError: handleScanError,
         preferredCamera: "environment",
         highlightScanRegion: true,
         highlightCodeOutline: true,
-        overlay: qrBoxEl?.current || undefined,
+        overlay: qrBoxEl.current || undefined,
       });
 
-      scanner?.current
-        ?.start()
-        .then(() => setQrOn(true))
+      scanner.current
+        .start()
+        .then(() => setIsActive(true))
         .catch((err) => {
-          if (err) setQrOn(false);
+          console.error("Camera start error:", err);
+          setIsActive(false);
+          onClose("");
+          alert(
+            "Camera is blocked or not accessible. Please allow camera in your browser permissions and reload."
+          );
         });
     }
 
     return () => {
-      if (!videoEl?.current) {
-        scanner?.current?.stop();
-      }
+      scanner.current?.stop();
+      scanner.current = null;
     };
   }, []);
 
-  // Camera permission alert
-  useEffect(() => {
-    if (!qrOn) {
-      onClose("");
-      alert(
-        "Camera is blocked or not accessible. Please allow camera in your browser permissions and Reload."
-      );
-    }
-  }, [qrOn]);
-
   return (
     <div className="fixed inset-0 w-full overflow-hidden bg-black">
-      {/* Top Bar */}
-      <div className="Top-Bar absolute top-0 right-0 left-0 z-10 flex items-center justify-between p-4">
+      {/* 🔹 Top Bar */}
+      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4">
         <Button
           onClick={handleClose}
           size="icon"
           variant="ghost"
-          className="rounded-full p-5  text-white "
+          className="rounded-full p-5 text-white"
         >
           <XIcon className="size-6" />
         </Button>
-
-        {/* Flashlight button */}
         <Button
+          onClick={handleToggleFlashlight}
           size="icon"
           variant="ghost"
-          onClick={toggleFlashlight}
-          className={` rounded-full  p-5 ${
+          className={`rounded-full p-5 ${
             isFlashOn ? "bg-white text-black" : "text-white"
           }`}
         >
@@ -101,32 +93,33 @@ function QrCodeScanner({ onClose }) {
         </Button>
       </div>
 
-      {/* Video Stream - Full Screen Background */}
-      <video ref={videoEl} className=" h-full w-full object-cover" />
+      {/* 🔹 Camera Preview */}
+      <video ref={videoEl} className="h-full w-full object-cover" />
 
-      <div ref={qrBoxEl} className="-translate-y-16">
-        <div className="absolute inset-0 pointer-events-none flex gap-12 flex-col justify-center items-center">
-          <CustomQrFrame />
-          <p className="text-white text-base z-10 ">Scan QR Code </p>
-        </div>
+      {/* 🔹 QR Frame Overlay */}
+      <div
+        ref={qrBoxEl}
+        className="absolute inset-0 flex flex-col items-center justify-center gap-6 -translate-y-16 pointer-events-none"
+      >
+        <CustomQrFrame />
+        <p className="text-white text-base">Scan QR Code</p>
       </div>
 
-      {/* Scan from photo button */}
-      <div className="absolute bottom-12 left-1/2 z-50 -translate-x-1/2 transform">
+      {/* 🔹 Upload Button */}
+      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-50">
         <Button
           variant="secondary"
           onClick={() => alert("coming soon")}
           className=" leading-0 rounded-3xl py-5 !px-6 font-normal text-black shadow"
         >
-          <ImageUpIcon />
-          Upload Photo
+          <ImageUpIcon /> Upload Photo
         </Button>
       </div>
     </div>
   );
 }
 
-export default QrCodeScanner;
+export default QrReader;
 
 function CustomQrFrame() {
   return (

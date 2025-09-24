@@ -1,6 +1,7 @@
 import { useState } from "react";
-import QrCodeScanner from "./components/QrCodeScanner";
 import { Button } from "./components/ui/button";
+import QrReader from "./components/QrReader";
+import { ArrowDownIcon } from "lucide-react";
 
 function App() {
   const [openQr, setOpenQr] = useState(false);
@@ -11,14 +12,21 @@ function App() {
   };
 
   return (
-    <div className="h-dvh bg-black/50">
-      <Button onClick={() => setOpenQr(!openQr)} className="text-green-700 ">
+    <div className="h-dvh flex  flex-col gap-12 justify-center items-center ">
+      <Button onClick={() => setOpenQr(!openQr)}>
         {openQr ? "Close" : "Open"} QR Scanner
       </Button>
 
-      {openQr && <QrCodeScanner onClose={onClose} />}
+      {openQr && <QrReader onClose={onClose} />}
 
-      {result && <p className="text-green-700">{result}</p>}
+      {result && (
+        <div>
+          <h2 className="text-xl font-bold flex justify-center items-center gap-2 text-center ">
+            Scan Result <ArrowDownIcon />
+          </h2>
+          <p className=" mt-4 font-medium text-center">{result}</p>
+        </div>
+      )}
     </div>
   );
 }
