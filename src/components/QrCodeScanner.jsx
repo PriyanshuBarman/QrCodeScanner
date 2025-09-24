@@ -2,30 +2,14 @@ import { Button } from "@/components/ui/button";
 import { FlashlightIcon, ImageUpIcon, XIcon } from "lucide-react";
 import QrScanner from "qr-scanner";
 import { useEffect, useRef, useState } from "react";
-import QrFrame from "./QrFrame";
 
-const QrReader = ({ onClose }) => {
-  // QR States (using the working logic from Medium article)
+function QrCodeScanner({ onClose }) {
   const scanner = useRef();
   const videoEl = useRef(null);
   const qrBoxEl = useRef(null);
   const [qrOn, setQrOn] = useState(true);
   const [isFlashOn, setIsFlashOn] = useState(false);
 
-  // Success callback (from Medium article)
-  const onScanSuccess = (result) => {
-    console.log("QR Code detected:", result);
-    // setScannedResult(result?.data);
-    onClose(result?.data);
-    setQrOn(false);
-  };
-
-  // Error callback (from Medium article)
-  const onScanFail = (err) => {
-    console.log("QR scan error:", err);
-  };
-
-  // Handle close button
   const handleClose = () => {
     if (scanner?.current) {
       scanner.current.stop();
@@ -33,10 +17,8 @@ const QrReader = ({ onClose }) => {
     }
     setQrOn(false);
     onClose("");
-    console.log("Scanner closed - camera should be off");
   };
 
-  // Toggle flashlight
   const toggleFlashlight = async () => {
     if (scanner.current) {
       try {
@@ -48,50 +30,26 @@ const QrReader = ({ onClose }) => {
     }
   };
 
-  // Handle scan from photo
-  const handleScanFromPhoto = async () => {
-    try {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = "image/*";
-
-      input.onchange = async (event) => {
-        const file = event.target.files[0];
-        if (file) {
-          try {
-            const result = await QrScanner.scanImage(file);
-            // setScannedResult(result);
-            console.log("QR Code from image:", result);
-          } catch (err) {
-            console.error("No QR code found in image:", err);
-            alert("No QR code found in the selected image");
-          }
-        }
-      };
-
-      input.click();
-    } catch (err) {
-      console.error("Error scanning from photo:", err);
-    }
+  const onScanSuccess = (result) => {
+    console.log("QR Code detected:", result);
+    onClose(result?.data);
+    setQrOn(false);
   };
 
-  // Initialize QR Scanner (using exact logic from Medium article)
+  const onScanFail = (err) => {
+    console.log("QR scan error:", err);
+  };
+
   useEffect(() => {
     if (videoEl?.current && !scanner.current) {
-      // Instantiate the QR Scanner (from Medium article)
       scanner.current = new QrScanner(videoEl?.current, onScanSuccess, {
         onDecodeError: onScanFail,
-        // Camera facing mode - "environment" means back camera
         preferredCamera: "environment",
-        // Help position our scan region
         highlightScanRegion: true,
-        // Show yellow outline around detected QR code
         highlightCodeOutline: true,
-        // Custom div for scan region control
         overlay: qrBoxEl?.current || undefined,
       });
 
-      // Start QR Scanner
       scanner?.current
         ?.start()
         .then(() => setQrOn(true))
@@ -100,7 +58,6 @@ const QrReader = ({ onClose }) => {
         });
     }
 
-    // Clean up on unmount
     return () => {
       if (!videoEl?.current) {
         scanner?.current?.stop();
@@ -108,12 +65,14 @@ const QrReader = ({ onClose }) => {
     };
   }, []);
 
-  // Camera permission alert (from Medium article)
+  // Camera permission alert
   useEffect(() => {
-    if (!qrOn) onClose("");
-    alert(
-      "Camera is blocked or not accessible. Please allow camera in your browser permissions and Reload."
-    );
+    if (!qrOn) {
+      onClose("");
+      alert(
+        "Camera is blocked or not accessible. Please allow camera in your browser permissions and Reload."
+      );
+    }
   }, [qrOn]);
 
   return (
@@ -147,7 +106,7 @@ const QrReader = ({ onClose }) => {
 
       <div ref={qrBoxEl} className="-translate-y-16">
         <div className="absolute inset-0 pointer-events-none flex gap-12 flex-col justify-center items-center">
-          <QrFrame />
+          <CustomQrFrame />
           <p className="text-white text-base z-10 ">Scan QR Code </p>
         </div>
       </div>
@@ -156,7 +115,7 @@ const QrReader = ({ onClose }) => {
       <div className="absolute bottom-12 left-1/2 z-50 -translate-x-1/2 transform">
         <Button
           variant="secondary"
-          onClick={handleScanFromPhoto}
+          onClick={() => alert("coming soon")}
           className=" leading-0 rounded-3xl py-5 !px-6 font-normal text-black shadow"
         >
           <ImageUpIcon />
@@ -165,6 +124,35 @@ const QrReader = ({ onClose }) => {
       </div>
     </div>
   );
-};
+}
 
-export default QrReader;
+export default QrCodeScanner;
+
+function CustomQrFrame() {
+  return (
+    <div className="relative grid place-items-center sm:min-h-82 sm:min-w-82 min-w-66 min-h-66">
+      {/* Main rounded square (invisible) */}
+      <div className="size-[93.5%] sm:size-[94%] rounded-[42px] outline-[50vmax] outline-black/30" />
+
+      {/* Top left corner */}
+      <div className="absolute top-0 left-0">
+        <div className="size-12 border-t-4 border-l-4  border-white rounded-tl-full" />
+      </div>
+
+      {/* Top right corner */}
+      <div className="absolute top-0 right-0">
+        <div className="size-12 border-t-4 border-r-4 border-white rounded-tr-full" />
+      </div>
+
+      {/* Bottom left corner */}
+      <div className="absolute bottom-0 left-0">
+        <div className="size-12 border-b-4 border-l-4 border-white rounded-bl-full" />
+      </div>
+
+      {/* Bottom right corner */}
+      <div className="absolute bottom-0 right-0">
+        <div className="size-12 border-b-4 border-r-4 border-white rounded-br-full" />
+      </div>
+    </div>
+  );
+}

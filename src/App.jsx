@@ -1,19 +1,6 @@
-// React
 import { useState } from "react";
-import QrReader from "./components/QrReader";
-import {
-  FlashlightIcon,
-  ImageIcon,
-  ImageUpIcon,
-  Settings,
-  X,
-  XIcon,
-  Zap,
-} from "lucide-react";
+import QrCodeScanner from "./components/QrCodeScanner";
 import { Button } from "./components/ui/button";
-import QrFrame from "./components/QrFrame";
-
-// Components
 
 function App() {
   const [openQr, setOpenQr] = useState(false);
@@ -28,8 +15,8 @@ function App() {
       <Button onClick={() => setOpenQr(!openQr)} className="text-green-700 ">
         {openQr ? "Close" : "Open"} QR Scanner
       </Button>
-     
-      {openQr && <QrReader onClose={onClose} />}
+
+      {openQr && <QrCodeScanner onClose={onClose} />}
 
       {result && <p className="text-green-700">{result}</p>}
     </div>
